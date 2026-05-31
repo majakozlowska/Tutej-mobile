@@ -9,11 +9,11 @@ import {
     Modal,
     ScrollView,
     Linking,
-    Dimensions,
     ActivityIndicator
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import Heading from '../../components/Heading';
+import ScreenHeader from '../../components/ScreenHeader';
+import ModalHero from '../../components/ModalHero';
 import { COLORS } from '../../constants/theme';
 
 interface EventData {
@@ -63,7 +63,7 @@ export default function EventsScreen() {
 
     const openMap = (place: string) => {
         const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place)}`;
-        Linking.openURL(url).catch((err) => console.error("An error occurred", err));
+        Linking.openURL(url).catch((err) => console.error(err));
     };
 
     const formatDateHelpers = (dateStr: string) => {
@@ -135,10 +135,10 @@ export default function EventsScreen() {
                 renderItem={renderEventCard}
                 contentContainerStyle={styles.listContent}
                 ListHeaderComponent={
-                    <View style={styles.header}>
-                        <Heading text="Wydarzenia" />
-                        <Text style={styles.subtitle}>Przeglądaj wydarzenia z okolicy</Text>
-                    </View>
+                    <ScreenHeader
+                        title="Wydarzenia"
+                        subtitle="Przeglądaj wydarzenia z okolicy"
+                    />
                 }
             />
 
@@ -152,14 +152,11 @@ export default function EventsScreen() {
                             </TouchableOpacity>
 
                             <ScrollView contentContainerStyle={styles.modalScroll} bounces={false}>
-                                <View style={styles.heroSection}>
-                                    <Image source={{ uri: selectedEvent.image }} style={styles.heroImage} />
-                                    <View style={styles.heroOverlay} />
-                                    <View style={styles.heroTextContainer}>
-                                        <Text style={styles.heroTitle}>{selectedEvent.name}</Text>
-                                        <Text style={styles.heroLocation}>{selectedEvent.place}</Text>
-                                    </View>
-                                </View>
+                                <ModalHero
+                                    imageUri={selectedEvent.image}
+                                    title={selectedEvent.name}
+                                    subtitle={selectedEvent.place}
+                                />
 
                                 <View style={styles.detailsContent}>
                                     <View style={styles.gridBoxes}>
@@ -239,14 +236,6 @@ const styles = StyleSheet.create({
     },
     listContent: {
         padding: 20,
-    },
-    header: {
-        marginBottom: 30,
-    },
-    subtitle: {
-        color: '#7F8C8D',
-        fontSize: 16,
-        marginTop: 5,
     },
     card: {
         position: 'relative',
@@ -343,43 +332,10 @@ const styles = StyleSheet.create({
         backgroundColor: 'rgba(255, 255, 255, 0.9)',
         alignItems: 'center',
         justifyContent: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.15,
-        shadowRadius: 4,
         elevation: 3,
     },
     modalScroll: {
         flexGrow: 1,
-    },
-    heroSection: {
-        position: 'relative',
-        height: 280,
-        justifyContent: 'flex-end',
-    },
-    heroImage: {
-        ...StyleSheet.absoluteFillObject,
-        resizeMode: 'cover',
-    },
-    heroOverlay: {
-        ...StyleSheet.absoluteFillObject,
-        backgroundColor: 'rgba(0, 0, 0, 0.4)',
-    },
-    heroTextContainer: {
-        padding: 20,
-        zIndex: 3,
-    },
-    heroTitle: {
-        fontSize: 26,
-        fontWeight: '700',
-        color: '#FFFFFF',
-        lineHeight: 32,
-        marginBottom: 6,
-    },
-    heroLocation: {
-        fontSize: 15,
-        color: '#E5E7E9',
-        letterSpacing: 0.5,
     },
     detailsContent: {
         padding: 20,
