@@ -14,7 +14,9 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import ScreenHeader from '../../components/ScreenHeader';
 import ModalHero from '../../components/ModalHero';
+import AuthorRow from '../../components/AuthorRow';
 import { COLORS } from '../../constants/theme';
+import { sharedStyles } from '../../constants/sharedStyles';
 
 interface ListingImage {
     id: number;
@@ -72,12 +74,12 @@ export default function TradeScreen() {
         const mainImage = item.images && item.images.length > 0 ? item.images[0].url : 'https://via.placeholder.com/150';
 
         return (
-            <TouchableOpacity style={styles.card} activeOpacity={0.9} onPress={() => setSelectedListing(item)}>
+            <TouchableOpacity style={sharedStyles.card} activeOpacity={0.9} onPress={() => setSelectedListing(item)}>
                 <View style={styles.imageWrapper}>
                     <Image source={{ uri: mainImage }} style={styles.cardImage} />
 
                     <View style={[styles.statusBadge, styles[item.status.toLowerCase()]]}>
-                        <View style={[styles.dot, item.status === 'AVAILABLE' ? styles.dotAvailable : styles.dotReserved]} />
+                        <View style={[styles.statusDot, item.status === 'AVAILABLE' ? styles.dotAvailable : styles.dotReserved]} />
                         <Text style={styles.statusText}>
                             {item.status === 'AVAILABLE' ? 'Dostępne' : 'Zarezerwowane'}
                         </Text>
@@ -100,9 +102,9 @@ export default function TradeScreen() {
     };
 
     return (
-        <View style={styles.container}>
+        <View style={sharedStyles.screenContainer}>
             {loading ? (
-                <View style={styles.centerContainer}>
+                <View style={sharedStyles.centerContainer}>
                     <ActivityIndicator size="large" color={COLORS.primary || '#3498DB'} />
                 </View>
             ) : (
@@ -110,7 +112,7 @@ export default function TradeScreen() {
                     data={listings}
                     keyExtractor={(item) => item.id.toString()}
                     renderItem={renderListingCard}
-                    contentContainerStyle={styles.listContent}
+                    contentContainerStyle={sharedStyles.listContent}
                     ListHeaderComponent={
                         <ScreenHeader
                             title="Giełda sąsiedzka"
@@ -122,8 +124,8 @@ export default function TradeScreen() {
 
             {selectedListing && (
                 <Modal visible={true} animationType="slide" onRequestClose={() => setSelectedListing(null)}>
-                    <View style={styles.modalContainer}>
-                        <TouchableOpacity style={styles.backButton} onPress={() => setSelectedListing(null)}>
+                    <View style={sharedStyles.modalContainer}>
+                        <TouchableOpacity style={sharedStyles.backButton} onPress={() => setSelectedListing(null)}>
                             <Ionicons name="chevron-back" size={28} color="#000000" />
                         </TouchableOpacity>
 
@@ -136,41 +138,34 @@ export default function TradeScreen() {
 
                             <View style={styles.detailsContent}>
                                 <View style={styles.gridBoxes}>
-                                    <View style={styles.box}>
-                                        <Text style={styles.boxLabel}>CENA</Text>
-                                        <Text style={styles.boxValue}>{getPriceString(selectedListing.price)}</Text>
+                                    <View style={sharedStyles.gridBox}>
+                                        <Text style={sharedStyles.gridBoxLabel}>CENA</Text>
+                                        <Text style={sharedStyles.gridBoxValue}>{getPriceString(selectedListing.price)}</Text>
                                     </View>
-                                    <View style={styles.box}>
-                                        <Text style={styles.boxLabel}>KONTAKT</Text>
-                                        <Text style={[styles.boxValue, styles.contactValue]} numberOfLines={2}>
+                                    <View style={sharedStyles.gridBox}>
+                                        <Text style={sharedStyles.gridBoxLabel}>KONTAKT</Text>
+                                        <Text style={[sharedStyles.gridBoxValue, styles.contactValue]} numberOfLines={2}>
                                             {selectedListing.contact}
                                         </Text>
                                     </View>
                                 </View>
 
-                                <View style={styles.section}>
-                                    <Text style={styles.sectionHeader}>OPIS</Text>
-                                    <Text style={styles.description}>{selectedListing.description}</Text>
+                                <View style={sharedStyles.section}>
+                                    <Text style={sharedStyles.sectionHeader}>OPIS</Text>
+                                    <Text style={sharedStyles.descriptionBox}>{selectedListing.description}</Text>
                                 </View>
 
-                                <View style={styles.section}>
-                                    <Text style={styles.sectionHeader}>OGŁOSZENIODAWCA</Text>
-                                    <View style={styles.hostRow}>
-                                        <Image
-                                            source={{
-                                                uri: selectedListing.author.photo ||
-                                                    `https://ui-avatars.com/api/?name=${selectedListing.author.firstName}+${selectedListing.author.lastName}`
-                                            }}
-                                            style={styles.avatar}
-                                        />
-                                        <Text style={styles.hostName}>
-                                            {selectedListing.author.firstName} {selectedListing.author.lastName}
-                                        </Text>
-                                    </View>
+                                <View style={sharedStyles.section}>
+                                    <Text style={sharedStyles.sectionHeader}>OGŁOSZENIODAWCA</Text>
+                                    <AuthorRow
+                                        photo={selectedListing.author.photo}
+                                        firstName={selectedListing.author.firstName}
+                                        lastName={selectedListing.author.lastName}
+                                    />
                                 </View>
 
-                                <View style={styles.section}>
-                                    <Text style={styles.sectionHeader}>GALERIA</Text>
+                                <View style={sharedStyles.section}>
+                                    <Text style={sharedStyles.sectionHeader}>GALERIA</Text>
                                     <View style={styles.galleryGrid}>
                                         {selectedListing.images && selectedListing.images.map((img, index) => (
                                             <TouchableOpacity
@@ -201,26 +196,6 @@ export default function TradeScreen() {
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: COLORS.white,
-    },
-    centerContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    listContent: {
-        padding: 20,
-    },
-    card: {
-        borderWidth: 3,
-        borderColor: '#ECF0F1',
-        borderRadius: 20,
-        overflow: 'hidden',
-        backgroundColor: COLORS.white,
-        marginBottom: 25,
-    },
     imageWrapper: {
         width: '100%',
         height: 180,
@@ -251,7 +226,7 @@ const styles = StyleSheet.create({
     reserved: {
         borderColor: '#F1C40F',
     },
-    dot: {
+    statusDot: {
         width: 8,
         height: 8,
         borderRadius: 4,
@@ -301,23 +276,6 @@ const styles = StyleSheet.create({
         fontSize: 15,
         color: '#7F8C8D',
     },
-    modalContainer: {
-        flex: 1,
-        backgroundColor: '#F8F9F9',
-    },
-    backButton: {
-        position: 'absolute',
-        top: 40,
-        left: 20,
-        zIndex: 20,
-        width: 44,
-        height: 44,
-        borderRadius: 22,
-        backgroundColor: 'rgba(255, 255, 255, 0.9)',
-        alignItems: 'center',
-        justifyContent: 'center',
-        elevation: 3,
-    },
     modalScroll: {
         flexGrow: 1,
     },
@@ -329,67 +287,9 @@ const styles = StyleSheet.create({
         gap: 15,
         marginBottom: 30,
     },
-    box: {
-        flex: 1,
-        borderWidth: 2,
-        borderColor: '#ECF0F1',
-        borderRadius: 12,
-        padding: 12,
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: COLORS.white,
-        elevation: 2,
-    },
-    boxLabel: {
-        color: '#7F8C8D',
-        fontSize: 12,
-        fontWeight: '500',
-        marginBottom: 4,
-    },
-    boxValue: {
-        fontSize: 16,
-        fontWeight: '600',
-        color: '#000000',
-    },
-    section: {
-        marginBottom: 30,
-    },
-    sectionHeader: {
-        fontSize: 13,
-        fontWeight: '600',
-        color: '#7F8C8D',
-        letterSpacing: 1.2,
-        marginBottom: 12,
-    },
-    description: {
-        fontSize: 15,
-        color: '#2C3E50',
-        lineHeight: 22,
-        backgroundColor: COLORS.white,
-        padding: 15,
-        borderRadius: 12,
-        borderWidth: 1,
-        borderColor: '#ECF0F1',
-    },
-    hostRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: COLORS.white,
-        padding: 12,
-        borderRadius: 12,
-        borderWidth: 1,
-        borderColor: '#ECF0F1',
-    },
-    avatar: {
-        width: 44,
-        height: 44,
-        borderRadius: 22,
-    },
-    hostName: {
-        marginLeft: 15,
-        fontSize: 15,
-        fontWeight: '600',
-        color: '#000000',
+    contactValue: {
+        fontSize: 14,
+        textAlign: 'center',
     },
     galleryGrid: {
         flexDirection: 'row',
@@ -402,7 +302,7 @@ const styles = StyleSheet.create({
         borderRadius: 12,
         overflow: 'hidden',
         borderWidth: 1,
-        borderColor: '#7F8C8D',
+        borderColor: '#ECF0F1',
     },
     galleryImage: {
         width: '100%',
