@@ -3,11 +3,11 @@ import Heading from '../../components/Heading';
 import MyText from '../../components/MyText';
 import { COLORS } from '../../constants/theme';
 
-export default function HomeScreen() {
+export default function TradeScreen() {
     return (
         <View style={styles.container}>
-            <Heading text="Home" />
-            <MyText text="Witaj w aplikacji Tutej!" />
+            <Heading text="Trade" />
+            <MyText text="Lokalny rynek i wymiana sąsiedzka" />
         </View>
     );
 }

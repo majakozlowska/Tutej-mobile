@@ -3,11 +3,11 @@ import Heading from '../../components/Heading';
 import MyText from '../../components/MyText';
 import { COLORS } from '../../constants/theme';
 
-export default function HomeScreen() {
+export default function ForumScreen() {
     return (
         <View style={styles.container}>
-            <Heading text="Home" />
-            <MyText text="Witaj w aplikacji Tutej!" />
+            <Heading text="Forum" />
+            <MyText text="Dyskusje lokalnej społeczności" />
         </View>
     );
 }

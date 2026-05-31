@@ -3,11 +3,11 @@ import Heading from '../../components/Heading';
 import MyText from '../../components/MyText';
 import { COLORS } from '../../constants/theme';
 
-export default function HomeScreen() {
+export default function NoticesScreen() {
     return (
         <View style={styles.container}>
-            <Heading text="Home" />
-            <MyText text="Witaj w aplikacji Tutej!" />
+            <Heading text="Notices" />
+            <MyText text="Ważne komunikaty i powiadomienia" />
         </View>
     );
 }
