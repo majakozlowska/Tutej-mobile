@@ -15,6 +15,7 @@ const styles = StyleSheet.create({
         fontSize: 32,
         fontWeight: '600',
         color: COLORS.black,
-        fontFamily: FONTS.heading
+        fontFamily: FONTS.heading,
+        marginTop: 30,
     },
 });
