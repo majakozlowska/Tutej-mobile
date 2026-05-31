@@ -14,7 +14,9 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import ScreenHeader from '../../components/ScreenHeader';
 import ModalHero from '../../components/ModalHero';
+import AuthorRow from '../../components/AuthorRow';
 import { COLORS } from '../../constants/theme';
+import { sharedStyles } from '../../constants/sharedStyles';
 
 interface EventData {
     id: number;
@@ -90,7 +92,7 @@ export default function EventsScreen() {
         const { monthShort, dayNumeric, timeString } = formatDateHelpers(item.date);
 
         return (
-            <TouchableOpacity style={styles.card} activeOpacity={0.9} onPress={() => setSelectedEvent(item)}>
+            <TouchableOpacity style={sharedStyles.card} activeOpacity={0.9} onPress={() => setSelectedEvent(item)}>
                 <View style={styles.imageWrapper}>
                     <Image source={{ uri: item.image }} style={styles.cardImage} />
                 </View>
@@ -121,19 +123,19 @@ export default function EventsScreen() {
 
     if (loading) {
         return (
-            <View style={styles.centerContainer}>
+            <View style={sharedStyles.centerContainer}>
                 <ActivityIndicator size="large" color={COLORS.primary} />
             </View>
         );
     }
 
     return (
-        <View style={styles.container}>
+        <View style={sharedStyles.screenContainer}>
             <FlatList
                 data={events}
                 keyExtractor={(item) => item.id.toString()}
                 renderItem={renderEventCard}
-                contentContainerStyle={styles.listContent}
+                contentContainerStyle={sharedStyles.listContent}
                 ListHeaderComponent={
                     <ScreenHeader
                         title="Wydarzenia"
@@ -146,8 +148,8 @@ export default function EventsScreen() {
                 const { monthShort, dayNumeric, fullDateString, timeString } = formatDateHelpers(selectedEvent.date);
                 return (
                     <Modal visible={true} animationType="slide" onRequestClose={() => setSelectedEvent(null)}>
-                        <View style={styles.modalContainer}>
-                            <TouchableOpacity style={styles.backButton} onPress={() => setSelectedEvent(null)}>
+                        <View style={sharedStyles.modalContainer}>
+                            <TouchableOpacity style={sharedStyles.backButton} onPress={() => setSelectedEvent(null)}>
                                 <Ionicons name="chevron-back" size={28} color="#000000" />
                             </TouchableOpacity>
 
@@ -160,22 +162,22 @@ export default function EventsScreen() {
 
                                 <View style={styles.detailsContent}>
                                     <View style={styles.gridBoxes}>
-                                        <View style={styles.box}>
-                                            <Text style={styles.boxLabel}>KOSZT</Text>
-                                            <Text style={styles.boxValue}>
+                                        <View style={sharedStyles.gridBox}>
+                                            <Text style={sharedStyles.gridBoxLabel}>KOSZT</Text>
+                                            <Text style={sharedStyles.gridBoxValue}>
                                                 {Number(selectedEvent.price) === 0 || !selectedEvent.price
                                                     ? 'Darmowe'
                                                     : `${selectedEvent.price} PLN`}
                                             </Text>
                                         </View>
-                                        <View style={styles.box}>
-                                            <Text style={styles.boxLabel}>CZAS</Text>
-                                            <Text style={styles.boxValue}>{selectedEvent.duration || 'N/A'}</Text>
+                                        <View style={sharedStyles.gridBox}>
+                                            <Text style={sharedStyles.gridBoxLabel}>CZAS</Text>
+                                            <Text style={sharedStyles.gridBoxValue}>{selectedEvent.duration || 'N/A'}</Text>
                                         </View>
                                     </View>
 
-                                    <View style={styles.section}>
-                                        <Text style={styles.sectionHeader}>KIEDY</Text>
+                                    <View style={sharedStyles.section}>
+                                        <Text style={sharedStyles.sectionHeader}>KIEDY</Text>
                                         <View style={styles.whenRow}>
                                             <View style={styles.miniCalendarModal}>
                                                 <Text style={styles.calMonth}>{monthShort}</Text>
@@ -188,25 +190,18 @@ export default function EventsScreen() {
                                         </View>
                                     </View>
 
-                                    <View style={styles.section}>
-                                        <Text style={styles.sectionHeader}>ORGANIZATOR</Text>
-                                        <View style={styles.hostRow}>
-                                            <Image
-                                                source={{
-                                                    uri: selectedEvent.author?.photo ||
-                                                        `https://ui-avatars.com/api/?name=${selectedEvent.author?.firstName}+${selectedEvent.author?.lastName}`
-                                                }}
-                                                style={styles.avatar}
-                                            />
-                                            <Text style={styles.hostName}>
-                                                {selectedEvent.author?.firstName} {selectedEvent.author?.lastName}
-                                            </Text>
-                                        </View>
+                                    <View style={sharedStyles.section}>
+                                        <Text style={sharedStyles.sectionHeader}>ORGANIZATOR</Text>
+                                        <AuthorRow
+                                            photo={selectedEvent.author?.photo}
+                                            firstName={selectedEvent.author?.firstName}
+                                            lastName={selectedEvent.author?.lastName}
+                                        />
                                     </View>
 
-                                    <View style={styles.section}>
-                                        <Text style={styles.sectionHeader}>OPIS</Text>
-                                        <Text style={styles.description}>{selectedEvent.description}</Text>
+                                    <View style={sharedStyles.section}>
+                                        <Text style={sharedStyles.sectionHeader}>OPIS</Text>
+                                        <Text style={sharedStyles.descriptionBox}>{selectedEvent.description}</Text>
                                     </View>
 
                                     <TouchableOpacity style={styles.mapButton} onPress={() => openMap(selectedEvent.place)}>
@@ -224,28 +219,6 @@ export default function EventsScreen() {
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: COLORS.white,
-    },
-    centerContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: COLORS.white,
-    },
-    listContent: {
-        padding: 20,
-    },
-    card: {
-        position: 'relative',
-        borderWidth: 3,
-        borderColor: '#ECF0F1',
-        borderRadius: 20,
-        overflow: 'hidden',
-        backgroundColor: COLORS.white,
-        marginBottom: 25,
-    },
     imageWrapper: {
         width: '100%',
         height: 180,
@@ -317,23 +290,6 @@ const styles = StyleSheet.create({
         color: '#000000',
         lineHeight: 20,
     },
-    modalContainer: {
-        flex: 1,
-        backgroundColor: '#F8F9F9',
-    },
-    backButton: {
-        position: 'absolute',
-        top: 40,
-        left: 20,
-        zIndex: 20,
-        width: 44,
-        height: 44,
-        borderRadius: 22,
-        backgroundColor: 'rgba(255, 255, 255, 0.9)',
-        alignItems: 'center',
-        justifyContent: 'center',
-        elevation: 3,
-    },
     modalScroll: {
         flexGrow: 1,
     },
@@ -344,37 +300,6 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         gap: 15,
         marginBottom: 30,
-    },
-    box: {
-        flex: 1,
-        borderWidth: 2,
-        borderColor: '#ECF0F1',
-        borderRadius: 12,
-        padding: 12,
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: COLORS.white,
-    },
-    boxLabel: {
-        color: '#7F8C8D',
-        fontSize: 12,
-        fontWeight: '500',
-        marginBottom: 4,
-    },
-    boxValue: {
-        fontSize: 16,
-        fontWeight: '600',
-        color: '#000000',
-    },
-    section: {
-        marginBottom: 25,
-    },
-    sectionHeader: {
-        fontSize: 13,
-        fontWeight: '600',
-        color: '#7F8C8D',
-        letterSpacing: 1.2,
-        marginBottom: 12,
     },
     whenRow: {
         flexDirection: 'row',
@@ -409,37 +334,6 @@ const styles = StyleSheet.create({
     timeStr: {
         fontSize: 14,
         color: '#7F8C8D',
-    },
-    hostRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: COLORS.white,
-        padding: 12,
-        borderRadius: 12,
-        borderWidth: 1,
-        borderColor: '#ECF0F1',
-    },
-    avatar: {
-        width: 44,
-        height: 44,
-        borderRadius: 22,
-        resizeMode: 'cover',
-    },
-    hostName: {
-        marginLeft: 15,
-        fontSize: 15,
-        fontWeight: '600',
-        color: '#000000',
-    },
-    description: {
-        fontSize: 15,
-        color: '#2C3E50',
-        lineHeight: 22,
-        backgroundColor: COLORS.white,
-        padding: 15,
-        borderRadius: 12,
-        borderWidth: 1,
-        borderColor: '#ECF0F1',
     },
     mapButton: {
         flexDirection: 'row',
