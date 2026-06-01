@@ -10,8 +10,8 @@ import {
     Alert
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import * as SecureStore from 'expo-secure-store';
 import { useRouter } from 'expo-router';
+import { useAuth } from '../context/AuthContext';
 
 import Heading from '../components/Heading';
 import MyText from '../components/MyText';
@@ -26,17 +26,15 @@ export default function LoginScreen() {
     const [password, setPassword] = useState('');
     const [error, setError] = useState<string | null>(null);
     const router = useRouter();
+    const { login } = useAuth();
 
     const handleLogin = async () => {
-        console.log("Kliknięto Zaloguj"); // DEBUG 1
-
         if (!email || !password) {
             setError('Wszystkie pola są wymagane.');
             return;
         }
 
-        const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://10.0.2.2:5000/api';
-        console.log("Uderzam pod:", `${API_URL}/auth/login`); // DEBUG 2
+        const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
         try {
             const response = await fetch(`${API_URL}/auth/login`, {
@@ -45,22 +43,17 @@ export default function LoginScreen() {
                 body: JSON.stringify({ email, password }),
             });
 
-            console.log("Status odpowiedzi:", response.status); // DEBUG 3
             const data = await response.json();
-            console.log("Dane z serwera:", data); // DEBUG 4
 
             if (!response.ok) {
                 setError(data.message || 'Błąd logowania');
                 return;
             }
 
-            await SecureStore.setItemAsync('token', data.token);
-
-            console.log("Próbuję nawigować do / (tabs)"); // DEBUG 5
+            await login(data.user, data.token);
             router.replace('/(tabs)');
 
         } catch (e) {
-            console.log("BŁĄD TRY/CATCH:", e); // DEBUG 6
             Alert.alert('Błąd', 'Sprawdź konsolę - serwer nie odpowiada.');
         }
     };

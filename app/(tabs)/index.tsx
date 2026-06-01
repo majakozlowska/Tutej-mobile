@@ -2,12 +2,12 @@ import React, { useState, useEffect } from 'react';
 import {
     StyleSheet,
     View,
-    Text,
     ScrollView,
     ActivityIndicator,
     TouchableOpacity
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import Text from '../../components/AppText';
 import ScreenHeader from '../../components/ScreenHeader';
 import Avatar from '../../components/Avatar';
 import { COLORS } from '../../constants/theme';
@@ -265,7 +265,7 @@ const styles = StyleSheet.create({
         borderRadius: 16,
         alignItems: 'center',
         justifyContent: 'center',
-        borderWidth: 3,
+        borderWidth: 2,
         borderColor: '#ECF0F1',
     },
     emptyText: {

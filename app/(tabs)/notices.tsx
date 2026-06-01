@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import {
     StyleSheet,
     View,
-    Text,
     FlatList,
     TouchableOpacity,
     Modal,
@@ -10,6 +9,7 @@ import {
     ActivityIndicator
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import Text from '../../components/AppText';
 import ScreenHeader from '../../components/ScreenHeader';
 import ModalHero from '../../components/ModalHero';
 import AuthorRow from '../../components/AuthorRow';
@@ -39,7 +39,7 @@ export default function NoticesScreen() {
     const [loading, setLoading] = useState(true);
     const [selectedNotice, setSelectedNotice] = useState<Notice | null>(null);
 
-    const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://10.0.2.2:5000/api';
+    const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
     const fetchNotices = async () => {
         try {
