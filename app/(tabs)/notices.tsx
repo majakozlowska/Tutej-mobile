@@ -142,7 +142,7 @@ export default function NoticesScreen() {
                             {item.author?.firstName} {item.author?.lastName}
                         </Text>
                     </View>
-                    <Ionicons name="chevron-forward" size={20} color="#7F8C8D" />
+                    <Ionicons name="chevron-forward" size={20} color={COLORS.darkGray} />
                 </View>
             </TouchableOpacity>
         );
@@ -251,7 +251,7 @@ const styles = StyleSheet.create({
     },
     date: {
         fontSize: 14,
-        color: '#7F8C8D',
+        color: COLORS.darkGray,
     },
     cardTitle: {
         fontSize: 22,
@@ -262,7 +262,7 @@ const styles = StyleSheet.create({
     },
     cardSnippet: {
         fontSize: 15,
-        color: '#7F8C8D',
+        color: COLORS.darkGray,
         lineHeight: 22,
         marginBottom: 20,
     },
@@ -271,7 +271,7 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         alignItems: 'center',
         borderTopWidth: 1,
-        borderColor: '#ECF0F1',
+        borderColor: COLORS.gray,
         paddingTop: 16,
     },
     authorRow: {
@@ -282,7 +282,7 @@ const styles = StyleSheet.create({
     authorName: {
         fontSize: 16,
         fontWeight: '500',
-        color: '#7F8C8D',
+        color: COLORS.darkGray,
     },
     modalScroll: {
         flexGrow: 1,
