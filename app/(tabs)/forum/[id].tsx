@@ -6,6 +6,7 @@ import { useAuth } from '../../../context/AuthContext';
 import Button from '../../../components/Button';
 import InputField from '../../../components/InputField';
 import TextArea from '../../../components/TextArea';
+import ActionButton from '../../../components/ActionButton';
 import { COLORS, FONTS } from '../../../constants/theme';
 
 interface Post {
@@ -98,9 +99,6 @@ export default function ForumPostsPage() {
                     <Ionicons name="arrow-back" size={24} color={COLORS.black} />
                 </TouchableOpacity>
                 <Text style={styles.breadcrumb}>Wątki</Text>
-                <TouchableOpacity style={styles.addBtn} onPress={() => setShowForm(!showForm)}>
-                    <Ionicons name={showForm ? "close" : "add"} size={26} color={COLORS.black} />
-                </TouchableOpacity>
             </View>
 
             {showForm && (
@@ -108,6 +106,7 @@ export default function ForumPostsPage() {
                     <InputField
                         placeholder="Tytuł wątku"
                         icon="letters"
+                        value={newTitle}
                         onChange={setNewTitle}
                     />
                     <TextArea
@@ -116,11 +115,6 @@ export default function ForumPostsPage() {
                         onChange={setNewContent}
                     />
                     <View style={styles.formActions}>
-                        <Button
-                            text="Anuluj"
-                            variant="secondary"
-                            onClick={() => setShowForm(false)}
-                        />
                         <Button
                             text={submitting ? "..." : "Opublikuj"}
                             variant="primary"
@@ -162,6 +156,13 @@ export default function ForumPostsPage() {
                     )}
                 />
             )}
+
+            <View style={styles.fabContainer}>
+                <ActionButton
+                    variant={showForm ? "danger" : "primary"}
+                    onClick={() => setShowForm(!showForm)}
+                />
+            </View>
         </View>
     );
 }
@@ -171,6 +172,12 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: COLORS.white,
         paddingHorizontal: 24,
+    },
+    fabContainer: {
+        position: 'absolute',
+        bottom: 25,
+        right: 25,
+        zIndex: 1000,
     },
     center: {
         flex: 1,
@@ -194,17 +201,6 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         backgroundColor: COLORS.white,
     },
-    addBtn: {
-        width: 54,
-        height: 54,
-        borderRadius: 18,
-        borderWidth: 2,
-        borderColor: 'rgba(0,0,0,0.06)',
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: COLORS.white,
-        marginLeft: 'auto',
-    },
     breadcrumb: {
         fontSize: 22,
         fontFamily: FONTS.heading,
@@ -218,27 +214,20 @@ const styles = StyleSheet.create({
         borderRadius: 32,
         padding: 20,
         borderWidth: 2,
-        borderColor: 'rgba(0,0,0,0.04)',
+        borderColor: COLORS.gray,
         marginBottom: 24,
         gap: 12,
     },
-    label: {
-        fontFamily: FONTS.heading,
-        color: COLORS.darkGray,
-        marginTop: 4,
-    },
     formActions: {
         flexDirection: 'row',
-        justifyContent: 'flex-end',
+        justifyContent: 'flex-start',
         alignItems: 'center',
-        gap: 10,
-        marginTop: 14,
     },
     postCard: {
         backgroundColor: COLORS.white,
         borderWidth: 2,
         borderColor: COLORS.gray,
-        borderRadius: 28,
+        borderRadius: 18,
         padding: 24,
         marginBottom: 20,
     },

@@ -11,12 +11,18 @@ import {
     ActivityIndicator
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
+import { ImagePlus } from 'lucide-react-native';
 import Text from '../../components/AppText';
 import ScreenHeader from '../../components/ScreenHeader';
 import ModalHero from '../../components/ModalHero';
 import AuthorRow from '../../components/AuthorRow';
 import MiniCalendar from '../../components/MiniCalendar';
 import Button from '../../components/Button';
+import InputField from '../../components/InputField';
+import TextArea from '../../components/TextArea';
+import ActionButton from '../../components/ActionButton';
+import { useAuth } from '../../context/AuthContext';
 import { COLORS, FONTS } from '../../constants/theme';
 import { sharedStyles } from '../../constants/sharedStyles';
 
@@ -43,11 +49,22 @@ interface EventData {
 }
 
 export default function EventsScreen() {
+    const { token, user } = useAuth();
     const [events, setEvents] = useState<EventData[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedEvent, setSelectedEvent] = useState<EventData | null>(null);
 
-    const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://10.0.2.2:5000/api';
+    const [showForm, setShowForm] = useState(false);
+    const [name, setName] = useState('');
+    const [description, setDescription] = useState('');
+    const [place, setPlace] = useState('');
+    const [date, setDate] = useState('');
+    const [duration, setDuration] = useState('');
+    const [price, setPrice] = useState('');
+    const [imageBase64, setImageBase64] = useState('');
+    const [submitting, setSubmitting] = useState(false);
+
+    const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
     const fetchEvents = async () => {
         try {
@@ -65,8 +82,71 @@ export default function EventsScreen() {
         fetchEvents();
     }, []);
 
+    const handleImageChange = async () => {
+        let result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            allowsEditing: true,
+            aspect: [16, 9],
+            quality: 0.5,
+            base64: true,
+        });
+
+        if (!result.canceled && result.assets[0].base64) {
+            setImageBase64(`data:image/jpeg;base64,${result.assets[0].base64}`);
+        }
+    };
+
+    const handleAddEvent = async () => {
+        if (!name.trim() || !description.trim() || !place.trim() || !date.trim() || !user?.id || !imageBase64) {
+            return;
+        }
+
+        setSubmitting(true);
+        try {
+            const formattedDate = date.replace(' ', 'T');
+
+            const res = await fetch(`${API_URL}/events`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    name: name.trim(),
+                    description: description.trim(),
+                    place: place.trim(),
+                    date: formattedDate,
+                    duration: duration.trim() || null,
+                    price: price.trim() || null,
+                    authorId: user.id,
+                    image: imageBase64,
+                }),
+            });
+
+            if (res.ok) {
+                const newEvent = await res.json();
+                setEvents([newEvent, ...events]);
+                setShowForm(false);
+                setName('');
+                setDescription('');
+                setPlace('');
+                setDate('');
+                setDuration('');
+                setPrice('');
+                setImageBase64('');
+            } else {
+                const errorData = await res.json();
+                console.error(errorData);
+            }
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
     const openMap = (place: string) => {
-        const url = `https://maps.google.com/?q=${encodeURIComponent(place)}`;
+        const url = `http://maps.google.com/?q=${encodeURIComponent(place)}`;
         Linking.openURL(url).catch((err) => console.error(err));
     };
 
@@ -136,12 +216,36 @@ export default function EventsScreen() {
                 renderItem={renderEventCard}
                 contentContainerStyle={sharedStyles.listContent}
                 ListHeaderComponent={
-                    <ScreenHeader
-                        title="Wydarzenia"
-                        subtitle="Przeglądaj wydarzenia z okolicy"
-                    />
+                    <View>
+                        <ScreenHeader
+                            title="Wydarzenia"
+                            subtitle="Przeglądaj wydarzenia z okolicy"
+                        />
+                        {showForm && (
+                            <View style={styles.newPostForm}>
+                                <InputField placeholder="Nazwa wydarzenia" icon="letters" value={name} onChange={setName} />
+                                <InputField placeholder="Adres" icon="building" value={place} onChange={setPlace} />
+                                <InputField placeholder="RRRR-MM-DD HH:SS" icon="date" value={date} onChange={setDate} />
+                                <InputField placeholder="Cena (PLN) / puste (darmowe)" icon="price" value={price} onChange={setPrice} />
+                                <InputField placeholder="Czas trwania" icon="duration" value={duration} onChange={setDuration} />
+                                <TextArea placeholder="Opis wydarzenia..." value={description} onChange={setDescription} />
+                                <TouchableOpacity style={styles.imageUploadBtn} onPress={handleImageChange}>
+                                    <ImagePlus size={24} color={COLORS.darkGray} />
+                                    <Text style={styles.imageUploadText}>Dodaj okładkę</Text>
+                                </TouchableOpacity>
+                                <Button text={submitting ? "..." : "Opublikuj"} variant="primary" onClick={handleAddEvent} />
+                            </View>
+                        )}
+                    </View>
                 }
             />
+
+            <View style={styles.fabContainer}>
+                <ActionButton
+                    variant={showForm ? "danger" : "primary"}
+                    onClick={() => setShowForm(!showForm)}
+                />
+            </View>
 
             {selectedEvent && (() => {
                 const { monthShort, dayNumeric, fullDateString, timeString } = formatDateHelpers(selectedEvent.date);
@@ -215,6 +319,39 @@ export default function EventsScreen() {
 }
 
 const styles = StyleSheet.create({
+    fabContainer: {
+        position: 'absolute',
+        bottom: 25,
+        right: 25,
+        zIndex: 1000,
+    },
+    newPostForm: {
+        backgroundColor: COLORS.white,
+        borderRadius: 32,
+        padding: 20,
+        borderWidth: 2,
+        borderColor: COLORS.gray,
+        marginBottom: 24,
+        gap: 12,
+    },
+    imageUploadBtn: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 16,
+        backgroundColor: COLORS.gray,
+        borderRadius: 16,
+        borderWidth: 2,
+        borderColor: COLORS.darkGray,
+        borderStyle: 'dashed',
+        gap: 8,
+        marginTop: 4,
+    },
+    imageUploadText: {
+        fontFamily: FONTS.heading,
+        color: COLORS.darkGray,
+        fontSize: 16,
+    },
     imageWrapper: {
         width: '100%',
         height: 180,
@@ -291,7 +428,6 @@ const styles = StyleSheet.create({
     },
     fullDate: {
         fontSize: 15,
-        fontWeight: '600',
         color: '#000000',
         textTransform: 'capitalize',
         marginBottom: 2,
@@ -300,21 +436,6 @@ const styles = StyleSheet.create({
         fontSize: 14,
         color: '#7F8C8D',
     },
-    mapButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: '#34495E',
-        paddingVertical: 14,
-        borderRadius: 12,
-        marginTop: 15,
-        marginBottom: 30,
-    },
-    mapButtonText: {
-        color: '#FFFFFF',
-        fontSize: 16,
-        fontWeight: '600',
-    },
     descriptionBox: {
         fontFamily: FONTS.regular,
         backgroundColor: COLORS.white,
@@ -322,5 +443,56 @@ const styles = StyleSheet.create({
         borderRadius: 12,
         borderWidth: 2,
         borderColor: COLORS.gray,
+    },
+imageUploadBtn: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 16,
+        borderRadius: 12,
+        borderWidth: 3,
+        borderColor: COLORS.gray,
+        borderStyle: 'dashed',
+        gap: 8,
+        marginTop: 4,
+    },
+    imageUploadText: {
+        color: COLORS.darkGray,
+        fontSize: 16,
+    },
+    imagePreviewList: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: 10,
+        marginTop: 8,
+    },
+    imagePreviewItem: {
+        width: 70,
+        height: 70,
+        borderRadius: 12,
+        position: 'relative',
+    },
+    previewImg: {
+        width: '100%',
+        height: '100%',
+        borderRadius: 12,
+        resizeMode: 'cover',
+    },
+    removeBtn: {
+        position: 'absolute',
+        top: -6,
+        right: -6,
+        backgroundColor: COLORS.white,
+        borderRadius: 12,
+    },
+    imageWrapper: {
+        width: '100%',
+        height: 180,
+        position: 'relative',
+    },
+    cardImage: {
+        width: '100%',
+        height: '100%',
+        resizeMode: 'cover',
     },
 });

@@ -59,7 +59,6 @@ const styles = StyleSheet.create({
     monthText: {
         fontFamily: FONTS.heading,
         fontSize: 13,
-        fontWeight: '600',
         color: COLORS.green,
         textAlign: 'center',
         textTransform: 'uppercase',
@@ -69,7 +68,6 @@ const styles = StyleSheet.create({
     dayText: {
         fontFamily: FONTS.heading,
         fontSize: 22,
-        fontWeight: '700',
         color: COLORS.black,
         textAlign: 'center',
         lineHeight: 24,

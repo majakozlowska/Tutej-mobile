@@ -12,6 +12,7 @@ interface AuthorRowProps {
     lastName: string;
     roleText?: string;
 }
+import { COLORS, FONTS } from '../constants/theme';
 
 export default function AuthorRow({ photo, firstName, lastName, roleText }: AuthorRowProps) {
     return (
@@ -32,8 +33,6 @@ const styles = StyleSheet.create({
         backgroundColor: '#FFFFFF',
         padding: 12,
         borderRadius: 12,
-        borderWidth: 1,
-        borderColor: '#ECF0F1',
     },
     authorInfo: {
         marginLeft: 15,
@@ -41,12 +40,13 @@ const styles = StyleSheet.create({
     },
     hostName: {
         fontSize: 15,
-        fontWeight: '600',
-        color: '#000000',
+        fontFamily: FONTS.bold,
+        color: COLORS.black,
     },
     roleText: {
         fontSize: 13,
-        color: '#7F8C8D',
+        fontFamily: FONTS.regular,
+        color: COLORS.darkGray,
         marginTop: 2,
     },
 });
