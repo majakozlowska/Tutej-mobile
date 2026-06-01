@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import {
     StyleSheet,
     View,
-    Text,
     FlatList,
     Image,
     TouchableOpacity,
@@ -12,10 +11,13 @@ import {
     ActivityIndicator
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import Text from '../../components/AppText';
 import ScreenHeader from '../../components/ScreenHeader';
 import ModalHero from '../../components/ModalHero';
 import AuthorRow from '../../components/AuthorRow';
-import { COLORS } from '../../constants/theme';
+import MiniCalendar from '../../components/MiniCalendar';
+import Button from '../../components/Button';
+import { COLORS, FONTS } from '../../constants/theme';
 import { sharedStyles } from '../../constants/sharedStyles';
 
 interface EventData {
@@ -64,7 +66,7 @@ export default function EventsScreen() {
     }, []);
 
     const openMap = (place: string) => {
-        const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place)}`;
+        const url = `https://maps.google.com/?q=${encodeURIComponent(place)}`;
         Linking.openURL(url).catch((err) => console.error(err));
     };
 
@@ -103,17 +105,14 @@ export default function EventsScreen() {
                             <View style={{ flex: 1 }}>
                                 <Text style={styles.location} numberOfLines={1}>{item.place}</Text>
                                 <View style={styles.meta}>
-                                    <Ionicons name="people-outline" size={16} color="#7F8C8D" />
+                                    <Ionicons name="people-outline" size={18} color={COLORS.darkGray} />
                                     <Text style={styles.metaText}>{item.attendees?.length || 0}</Text>
                                     <Text style={styles.dot}>·</Text>
-                                    <Ionicons name="time-outline" size={16} color="#7F8C8D" />
+                                    <Ionicons name="time-outline" size={18} color={COLORS.darkGray} />
                                     <Text style={styles.metaText}>{timeString}</Text>
                                 </View>
                             </View>
-                            <View style={styles.miniCalendar}>
-                                <Text style={styles.calMonth}>{monthShort}</Text>
-                                <Text style={styles.calDay}>{dayNumeric}</Text>
-                            </View>
+                            <MiniCalendar month={monthShort} day={dayNumeric} />
                         </View>
                     </View>
                 </View>
@@ -179,10 +178,7 @@ export default function EventsScreen() {
                                     <View style={sharedStyles.section}>
                                         <Text style={sharedStyles.sectionHeader}>KIEDY</Text>
                                         <View style={styles.whenRow}>
-                                            <View style={styles.miniCalendarModal}>
-                                                <Text style={styles.calMonth}>{monthShort}</Text>
-                                                <Text style={styles.calDay}>{dayNumeric}</Text>
-                                            </View>
+                                            <MiniCalendar month={monthShort} day={dayNumeric} />
                                             <View style={styles.whenDetails}>
                                                 <Text style={styles.fullDate}>{fullDateString}</Text>
                                                 <Text style={styles.timeStr}>{timeString}</Text>
@@ -201,13 +197,13 @@ export default function EventsScreen() {
 
                                     <View style={sharedStyles.section}>
                                         <Text style={sharedStyles.sectionHeader}>OPIS</Text>
-                                        <Text style={sharedStyles.descriptionBox}>{selectedEvent.description}</Text>
+                                        <Text style={styles.descriptionBox}>{selectedEvent.description}</Text>
                                     </View>
 
-                                    <TouchableOpacity style={styles.mapButton} onPress={() => openMap(selectedEvent.place)}>
-                                        <Ionicons name="map" size={20} color="#FFFFFF" style={{ marginRight: 8 }} />
-                                        <Text style={styles.mapButtonText}>Otwórz mapę Google</Text>
-                                    </TouchableOpacity>
+                                    <Button
+                                        text="Otwórz mapę Google"
+                                        onClick={() => openMap(selectedEvent.place)}
+                                    />
                                 </View>
                             </ScrollView>
                         </View>
@@ -238,9 +234,9 @@ const styles = StyleSheet.create({
     },
     cardTitle: {
         fontSize: 20,
-        fontWeight: '600',
         color: '#000000',
         marginBottom: 10,
+        fontFamily: FONTS.heading,
     },
     belowTitle: {
         width: '100%',
@@ -249,10 +245,10 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
     },
     location: {
-        color: '#7F8C8D',
+        color: COLORS.darkGray,
+        fontFamily: FONTS.regular,
         textTransform: 'uppercase',
-        letterSpacing: 0.5,
-        fontSize: 13,
+        fontSize: 16,
     },
     meta: {
         flexDirection: 'row',
@@ -261,34 +257,13 @@ const styles = StyleSheet.create({
     },
     metaText: {
         marginLeft: 4,
-        color: '#7F8C8D',
-        fontSize: 14,
+        color: COLORS.darkGray,
+        fontSize: 15,
+        fontFamily: FONTS.regular,
     },
     dot: {
         marginHorizontal: 8,
-        color: '#7F8C8D',
-    },
-    miniCalendar: {
-        borderWidth: 2,
-        borderColor: '#ECF0F1',
-        borderRadius: 10,
-        padding: 6,
-        alignItems: 'center',
-        justifyContent: 'center',
-        minWidth: 60,
-        backgroundColor: COLORS.white,
-    },
-    calMonth: {
-        color: '#2ECC71',
-        fontWeight: '600',
-        fontSize: 11,
-        marginBottom: 2,
-    },
-    calDay: {
-        fontSize: 20,
-        fontWeight: '600',
-        color: '#000000',
-        lineHeight: 20,
+        color: COLORS.darkGray,
     },
     modalScroll: {
         flexGrow: 1,
@@ -307,21 +282,11 @@ const styles = StyleSheet.create({
         backgroundColor: COLORS.white,
         padding: 12,
         borderRadius: 12,
-        borderWidth: 1,
-        borderColor: '#ECF0F1',
-    },
-    miniCalendarModal: {
         borderWidth: 2,
-        borderColor: '#ECF0F1',
-        borderRadius: 10,
-        padding: 8,
-        alignItems: 'center',
-        justifyContent: 'center',
-        minWidth: 65,
-        backgroundColor: '#FAFAFA',
+        borderColor: COLORS.gray,
+        gap: 15,
     },
     whenDetails: {
-        marginLeft: 15,
         flex: 1,
     },
     fullDate: {
@@ -349,5 +314,13 @@ const styles = StyleSheet.create({
         color: '#FFFFFF',
         fontSize: 16,
         fontWeight: '600',
+    },
+    descriptionBox: {
+        fontFamily: FONTS.regular,
+        backgroundColor: COLORS.white,
+        padding: 12,
+        borderRadius: 12,
+        borderWidth: 2,
+        borderColor: COLORS.gray,
     },
 });

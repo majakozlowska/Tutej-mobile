@@ -63,5 +63,6 @@ const styles = StyleSheet.create({
         color: COLORS.black,
         fontSize: 16,
         padding: 0,
+        fontFamily: 'Urbanist_400Regular',
     },
 });

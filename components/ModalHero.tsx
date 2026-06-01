@@ -1,4 +1,5 @@
 import React from 'react';
+import { COLORS, FONTS } from '../constants/theme';
 import {
     StyleSheet,
     View,
@@ -45,14 +46,15 @@ const styles = StyleSheet.create({
     },
     heroTitle: {
         fontSize: 26,
-        fontWeight: '700',
         color: '#FFFFFF',
+        fontFamily: FONTS.heading,
         lineHeight: 32,
         marginBottom: 6,
     },
     heroSubtitle: {
-        fontSize: 15,
+        fontSize: 18,
         color: '#E5E7E9',
+        fontFamily: FONTS.regular,
         letterSpacing: 0.5,
     },
 });

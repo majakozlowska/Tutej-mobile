@@ -20,6 +20,7 @@ export const COLORS = {
 export const FONTS = {
   heading: 'HeptaSlab_600SemiBold',
   regular: 'Urbanist_400Regular',
+  bold: 'Urbanist_600SemiBold',
 };
 
 export const Colors = {

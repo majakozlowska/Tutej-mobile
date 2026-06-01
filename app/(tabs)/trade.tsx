@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import {
     StyleSheet,
     View,
-    Text,
     FlatList,
     Image,
     TouchableOpacity,
@@ -12,10 +11,11 @@ import {
     Dimensions
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import Text from '../../components/AppText';
 import ScreenHeader from '../../components/ScreenHeader';
 import ModalHero from '../../components/ModalHero';
 import AuthorRow from '../../components/AuthorRow';
-import { COLORS } from '../../constants/theme';
+import { COLORS, FONTS } from '../../constants/theme';
 import { sharedStyles } from '../../constants/sharedStyles';
 
 interface ListingImage {
@@ -268,7 +268,7 @@ const styles = StyleSheet.create({
     },
     title: {
         fontSize: 20,
-        fontWeight: '700',
+        fontFamily: FONTS.heading,
         color: '#000000',
         marginBottom: 5,
     },
