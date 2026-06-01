@@ -6,11 +6,11 @@ import {
     ActivityIndicator,
     TouchableOpacity
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import Text from '../../components/AppText';
 import ScreenHeader from '../../components/ScreenHeader';
 import Avatar from '../../components/Avatar';
-import { COLORS } from '../../constants/theme';
+import MiniCalendar from '../../components/MiniCalendar';
+import { COLORS, FONTS } from '../../constants/theme';
 import { sharedStyles } from '../../constants/sharedStyles';
 
 interface Author {
@@ -57,7 +57,7 @@ export default function HomeScreen() {
     const [event, setEvent] = useState<EventData | null>(null);
     const [loading, setLoading] = useState(true);
 
-    const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://10.0.2.2:5000/api';
+    const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
     useEffect(() => {
         const fetchData = async () => {
@@ -99,72 +99,75 @@ export default function HomeScreen() {
         <ScrollView style={sharedStyles.screenContainer} contentContainerStyle={styles.scrollContent} bounces={false}>
             <ScreenHeader
                 title="Dzień dobry!"
-                subtitle="Sprawdź, co nowego dzieje się w Twojej okolicy. Przeglądaj wydarzenia, oferty, ogłoszenia oraz porozmawiaj z innymi mieszkańcami na forum!"
+                subtitle="Sprawdź, co dzieje się w Twojej okolicy!"
             />
 
             {loading ? (
                 <View style={styles.loaderContainer}>
                     <ActivityIndicator size="large" color={COLORS.primary} />
-                    <Text style={styles.loaderText}>Ładowanie podglądu...</Text>
                 </View>
             ) : (
                 <View style={styles.dashboardGrid}>
                     <View style={sharedStyles.section}>
-                        <Text style={sharedStyles.sectionHeader}>Najnowsze ogłoszenie</Text>
+                        <Text style={styles.sectionHeader}>Najnowsze ogłoszenie</Text>
                         {notice ? (
-                            <View style={[sharedStyles.card, styles.homeCardPadding]}>
+                            <View style={[sharedStyles.card, styles.cardPadding]}>
                                 <Text style={styles.cardTitle}>{notice.title}</Text>
                                 <Text style={styles.cardSnippet} numberOfLines={3}>{notice.content}</Text>
                                 <View style={styles.cardFooter}>
-                                    <Avatar
-                                        photo={notice.author?.photo}
-                                        firstName={notice.author?.firstName}
-                                        lastName={notice.author?.lastName}
-                                        size={32}
-                                    />
-                                    <Text style={styles.authorName}>
-                                        {notice.author?.firstName} {notice.author?.lastName}
-                                    </Text>
+                                    <View style={styles.authorRow}>
+                                        <Avatar
+                                            photo={notice.author?.photo}
+                                            firstName={notice.author?.firstName}
+                                            lastName={notice.author?.lastName}
+                                            size={36}
+                                        />
+                                        <Text style={styles.authorName}>
+                                            {notice.author?.firstName} {notice.author?.lastName}
+                                        </Text>
+                                    </View>
                                 </View>
                             </View>
                         ) : (
                             <View style={styles.emptyContainer}>
-                                <Text style={styles.emptyText}>Brak nowych ogłoszeń.</Text>
+                                <Text style={styles.emptyText}>Brak ogłoszeń.</Text>
                             </View>
                         )}
                     </View>
 
                     <View style={sharedStyles.section}>
-                        <Text style={sharedStyles.sectionHeader}>Najbliższe wydarzenie</Text>
+                        <Text style={styles.sectionHeader}>Najbliższe wydarzenie</Text>
                         {event ? (
                             (() => {
                                 const { monthShort, dayNumeric } = formatDateHelpers(event.date);
                                 return (
-                                    <View style={[sharedStyles.card, styles.homeCardPadding]}>
-                                        <View style={styles.eventTopRow}>
-                                            <Text style={[styles.cardTitle, { flex: 1 }]}>{event.name}</Text>
-                                            <View style={styles.miniCalendar}>
-                                                <Text style={styles.calMonth}>{monthShort}</Text>
-                                                <Text style={styles.calDay}>{dayNumeric}</Text>
+                                    <View style={[sharedStyles.card, styles.cardPadding]}>
+                                        <View style={styles.eventRow}>
+                                            <View style={{ flex: 1 }}>
+                                                <Text style={styles.cardTitle}>{event.name}</Text>
+                                                <Text style={styles.location}>{event.place}</Text>
                                             </View>
+                                            <MiniCalendar month={monthShort} day={dayNumeric} />
                                         </View>
                                         <View style={styles.cardFooter}>
-                                            <Avatar
-                                                photo={event.author?.photo}
-                                                firstName={event.author?.firstName}
-                                                lastName={event.author?.lastName}
-                                                size={32}
-                                            />
-                                            <Text style={styles.authorName}>
-                                                {event.author?.firstName} {event.author?.lastName}
-                                            </Text>
+                                            <View style={styles.authorRow}>
+                                                <Avatar
+                                                    photo={event.author?.photo}
+                                                    firstName={event.author?.firstName}
+                                                    lastName={event.author?.lastName}
+                                                    size={36}
+                                                />
+                                                <Text style={styles.authorName}>
+                                                    {event.author?.firstName} {event.author?.lastName}
+                                                </Text>
+                                            </View>
                                         </View>
                                     </View>
                                 );
                             })()
                         ) : (
                             <View style={styles.emptyContainer}>
-                                <Text style={styles.emptyText}>Brak zaplanowanych wydarzeń.</Text>
+                                <Text style={styles.emptyText}>Brak wydarzeń.</Text>
                             </View>
                         )}
                     </View>
@@ -175,103 +178,78 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
-    scrollContent: {
-        padding: 20,
-        paddingBottom: 40,
-    },
     loaderContainer: {
         paddingVertical: 60,
         alignItems: 'center',
-        justifyContent: 'center',
-    },
-    loaderText: {
-        marginTop: 12,
-        fontSize: 15,
-        color: '#7F8C8D',
-        fontWeight: '500',
     },
     dashboardGrid: {
-        flexDirection: 'column',
-        gap: 10,
-        marginTop: 10,
+        gap: 0,
+        marginTop: 12,
     },
-    homeCardPadding: {
+    cardPadding: {
         padding: 20,
     },
     cardTitle: {
-        fontSize: 18,
-        fontWeight: '700',
+        fontSize: 20,
+        fontFamily: FONTS.heading,
         color: '#000000',
         marginBottom: 8,
-        lineHeight: 24,
     },
     cardSnippet: {
-        fontSize: 14,
-        color: '#7F8C8D',
-        lineHeight: 20,
+        fontSize: 15,
+        fontFamily: FONTS.regular,
+        color: COLORS.darkGray,
+        lineHeight: 22,
         marginBottom: 16,
     },
-    eventTopRow: {
+    eventRow: {
         flexDirection: 'row',
-        alignItems: 'center',
-        marginBottom: 15,
+        alignItems: 'flex-start',
         justifyContent: 'space-between',
-        gap: 10,
-    },
-    locationText: {
-        fontSize: 14,
-        color: '#7F8C8D',
         marginBottom: 16,
+        gap: 12,
     },
-    miniCalendar: {
-        borderWidth: 2,
-        borderColor: '#ECF0F1',
-        borderRadius: 10,
-        padding: 6,
-        alignItems: 'center',
-        justifyContent: 'center',
-        minWidth: 52,
-        backgroundColor: COLORS.white,
-    },
-    calMonth: {
-        color: '#2ECC71',
-        fontWeight: '600',
-        fontSize: 10,
-        marginBottom: 1,
-    },
-    calDay: {
-        fontSize: 16,
-        fontWeight: '600',
-        color: '#000000',
-        lineHeight: 16,
+    location: {
+        fontSize: 14,
+        fontFamily: FONTS.regular,
+        color: COLORS.darkGray,
+        textTransform: 'uppercase',
     },
     cardFooter: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 10,
         borderTopWidth: 1,
-        borderColor: '#ECF0F1',
+        borderColor: COLORS.gray,
         paddingTop: 12,
     },
+    authorRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 10,
+    },
     authorName: {
-        fontSize: 14,
-        fontWeight: '500',
-        color: '#7F8C8D',
+        fontSize: 15,
+        fontFamily: FONTS.regular,
+        color: COLORS.darkGray,
     },
     emptyContainer: {
         backgroundColor: COLORS.white,
-        paddingVertical: 40,
-        paddingHorizontal: 20,
-        borderRadius: 16,
-        alignItems: 'center',
-        justifyContent: 'center',
+        padding: 24,
+        borderRadius: 24,
         borderWidth: 2,
-        borderColor: '#ECF0F1',
+        borderColor: COLORS.gray,
+        alignItems: 'center',
     },
     emptyText: {
         fontSize: 15,
-        color: '#7F8C8D',
-        fontWeight: '500',
-        textAlign: 'center',
+        fontFamily: FONTS.regular,
+        color: COLORS.darkGray,
+    },
+    sectionHeader: {
+        fontSize: 15,
+        fontFamily: FONTS.heading,
+        color: COLORS.darkGray,
+        marginBottom: 12,
+        marginTop: -26,
     },
 });

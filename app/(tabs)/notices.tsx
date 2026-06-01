@@ -14,7 +14,12 @@ import ScreenHeader from '../../components/ScreenHeader';
 import ModalHero from '../../components/ModalHero';
 import AuthorRow from '../../components/AuthorRow';
 import Avatar from '../../components/Avatar';
-import { COLORS } from '../../constants/theme';
+import Button from '../../components/Button';
+import InputField from '../../components/InputField';
+import TextArea from '../../components/TextArea';
+import ActionButton from '../../components/ActionButton';
+import { useAuth } from '../../context/AuthContext';
+import { COLORS, FONTS } from '../../constants/theme';
 import { sharedStyles } from '../../constants/sharedStyles';
 
 interface Author {
@@ -35,11 +40,17 @@ interface Notice {
 }
 
 export default function NoticesScreen() {
+    const { token, user } = useAuth();
     const [notices, setNotices] = useState<Notice[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedNotice, setSelectedNotice] = useState<Notice | null>(null);
+    const [showForm, setShowForm] = useState(false);
+    const [newTitle, setNewTitle] = useState('');
+    const [newContent, setNewContent] = useState('');
+    const [submitting, setSubmitting] = useState(false);
 
     const API_URL = process.env.EXPO_PUBLIC_API_URL;
+    const canPost = user?.role === 'COUNCILLOR' || user?.role === 'ADMIN';
 
     const fetchNotices = async () => {
         try {
@@ -56,6 +67,35 @@ export default function NoticesScreen() {
     useEffect(() => {
         fetchNotices();
     }, []);
+
+    const handleCreateNotice = async () => {
+        if (!newTitle.trim() || !newContent.trim()) return;
+        setSubmitting(true);
+        try {
+            const res = await fetch(`${API_URL}/notices`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    title: newTitle.trim(),
+                    content: newContent.trim(),
+                }),
+            });
+            if (res.ok) {
+                const created = await res.json();
+                setNotices([created, ...notices]);
+                setNewTitle('');
+                setNewContent('');
+                setShowForm(false);
+            }
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setSubmitting(false);
+        }
+    };
 
     const formatDate = (iso: string) => {
         const d = new Date(iso);
@@ -124,12 +164,43 @@ export default function NoticesScreen() {
                 renderItem={renderNoticeCard}
                 contentContainerStyle={sharedStyles.listContent}
                 ListHeaderComponent={
-                    <ScreenHeader
-                        title="Ogłoszenia"
-                        subtitle="Ważne komunikaty i informacje od rady osiedla"
-                    />
+                    <View>
+                        <ScreenHeader
+                            title="Ogłoszenia"
+                            subtitle="Ważne komunikaty i informacje od rady osiedla"
+                        />
+                        {showForm && (
+                            <View style={styles.newPostForm}>
+                                <InputField
+                                    placeholder="Tytuł ogłoszenia"
+                                    icon="letters"
+                                    value={newTitle}
+                                    onChange={setNewTitle}
+                                />
+                                <TextArea
+                                    placeholder="Treść ogłoszenia..."
+                                    value={newContent}
+                                    onChange={setNewContent}
+                                />
+                                <Button
+                                    text={submitting ? "..." : "Opublikuj"}
+                                    variant="primary"
+                                    onClick={handleCreateNotice}
+                                />
+                            </View>
+                        )}
+                    </View>
                 }
             />
+
+            {canPost && (
+                <View style={styles.fabContainer}>
+                    <ActionButton
+                        variant={showForm ? "danger" : "primary"}
+                        onClick={() => setShowForm(!showForm)}
+                    />
+                </View>
+            )}
 
             {selectedNotice && (
                 <Modal visible={true} animationType="slide" onRequestClose={() => setSelectedNotice(null)}>
@@ -184,8 +255,8 @@ const styles = StyleSheet.create({
     },
     cardTitle: {
         fontSize: 22,
-        fontWeight: '700',
-        color: '#000000',
+        fontFamily: FONTS.heading,
+        color: COLORS.black,
         marginBottom: 12,
         lineHeight: 28,
     },
@@ -218,5 +289,20 @@ const styles = StyleSheet.create({
     },
     detailsContent: {
         padding: 20,
+    },
+    fabContainer: {
+        position: 'absolute',
+        bottom: 25,
+        right: 25,
+        zIndex: 1000,
+    },
+    newPostForm: {
+        backgroundColor: COLORS.white,
+        borderRadius: 32,
+        padding: 20,
+        borderWidth: 2,
+        borderColor: COLORS.gray,
+        marginBottom: 24,
+        gap: 12,
     },
 });

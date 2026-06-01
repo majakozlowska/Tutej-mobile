@@ -1,10 +1,11 @@
 import { StyleSheet, Dimensions } from 'react-native';
-import { COLORS } from './theme';
+import { COLORS, FONTS } from './theme';
 
 export const sharedStyles = StyleSheet.create({
     screenContainer: {
         flex: 1,
         backgroundColor: COLORS.white,
+        padding: 24,
     },
     centerContainer: {
         flex: 1,
@@ -13,7 +14,7 @@ export const sharedStyles = StyleSheet.create({
         backgroundColor: COLORS.white,
     },
     listContent: {
-        padding: 20,
+        padding: 0,
     },
     card: {
         borderWidth: 2,
@@ -27,9 +28,9 @@ export const sharedStyles = StyleSheet.create({
         marginBottom: 25,
     },
     sectionHeader: {
-        fontSize: 13,
-        fontWeight: '600',
-        color: '#7F8C8D',
+        fontSize: 15,
+        fontFamily: FONTS.heading,
+        color: COLORS.darkGray,
         letterSpacing: 1.2,
         marginBottom: 12,
     },
@@ -40,12 +41,10 @@ export const sharedStyles = StyleSheet.create({
         backgroundColor: COLORS.white,
         padding: 15,
         borderRadius: 12,
-        borderWidth: 1,
-        borderColor: '#ECF0F1',
     },
     modalContainer: {
         flex: 1,
-        backgroundColor: '#F8F9F9',
+        backgroundColor: COLORS.gray,
     },
     backButton: {
         position: 'absolute',
@@ -62,8 +61,6 @@ export const sharedStyles = StyleSheet.create({
     },
     gridBox: {
         flex: 1,
-        borderWidth: 2,
-        borderColor: '#ECF0F1',
         borderRadius: 12,
         padding: 12,
         alignItems: 'center',
@@ -71,14 +68,14 @@ export const sharedStyles = StyleSheet.create({
         backgroundColor: COLORS.white,
     },
     gridBoxLabel: {
-        color: '#7F8C8D',
-        fontSize: 12,
-        fontWeight: '500',
+        color: COLORS.darkGray,
+        fontFamily: FONTS.bold,
+        fontSize: 15,
         marginBottom: 4,
     },
     gridBoxValue: {
         fontSize: 16,
-        fontWeight: '600',
-        color: '#000000',
+        color: COLORS.black,
+        fontFamily: FONTS.heading,
     }
 });

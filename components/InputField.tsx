@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, TextInput, StyleSheet } from 'react-native';
-import { Type, AtSign, Lock, User, Building2 } from 'lucide-react-native';
+import { Type, AtSign, Lock, User, Building2, Calendar, Coins, Clock, Phone } from 'lucide-react-native';
 import { COLORS } from '../constants/theme';
 
 const icons = {
@@ -9,12 +9,17 @@ const icons = {
     lock: Lock,
     person: User,
     building: Building2,
+    date: Calendar,
+    price: Coins,
+    duration: Clock,
+    contact: Phone,
 };
 
 interface InputFieldProps {
     placeholder: string;
     type?: 'text' | 'password' | 'email';
     icon?: keyof typeof icons;
+    value?: string;
     onChange?: (value: string) => void;
 }
 
@@ -22,9 +27,10 @@ export default function InputField({
     placeholder,
     type = 'text',
     icon = 'letters',
+    value,
     onChange,
 }: InputFieldProps) {
-    const IconComponent = icons[icon];
+    const IconComponent = icons[icon] || Type;
 
     return (
         <View style={styles.container}>
@@ -38,6 +44,7 @@ export default function InputField({
                 secureTextEntry={type === 'password'}
                 keyboardType={type === 'email' ? 'email-address' : 'default'}
                 autoCapitalize="none"
+                value={value}
                 onChangeText={onChange}
             />
         </View>

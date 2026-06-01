@@ -5,6 +5,7 @@ import {
     Text
 } from 'react-native';
 import Heading from './Heading';
+import { COLORS, FONTS } from '../constants/theme';
 
 interface ScreenHeaderProps {
     title: string;
@@ -25,7 +26,8 @@ const styles = StyleSheet.create({
         marginBottom: 30,
     },
     subtitle: {
-        color: '#7F8C8D',
+        color: COLORS.darkGray,
+        fontFamily: FONTS.regular,
         fontSize: 16,
         marginTop: 5,
         lineHeight: 22,

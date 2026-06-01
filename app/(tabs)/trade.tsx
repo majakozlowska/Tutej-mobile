@@ -11,12 +11,22 @@ import {
     Dimensions
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
+import { LinearGradient } from 'expo-linear-gradient';
 import Text from '../../components/AppText';
 import ScreenHeader from '../../components/ScreenHeader';
 import ModalHero from '../../components/ModalHero';
 import AuthorRow from '../../components/AuthorRow';
+import Button from '../../components/Button';
+import InputField from '../../components/InputField';
+import TextArea from '../../components/TextArea';
+import ActionButton from '../../components/ActionButton';
+import { useAuth } from '../../context/AuthContext';
 import { COLORS, FONTS } from '../../constants/theme';
 import { sharedStyles } from '../../constants/sharedStyles';
+import { ImagePlus } from 'lucide-react-native';
+
+const IconComponent = ImagePlus;
 
 interface ListingImage {
     id: number;
@@ -41,10 +51,19 @@ interface ListingData {
 }
 
 export default function TradeScreen() {
+    const { token, user } = useAuth();
     const [listings, setListings] = useState<ListingData[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedListing, setSelectedListing] = useState<ListingData | null>(null);
     const [zoomedImage, setZoomedImage] = useState<string | null>(null);
+
+    const [showForm, setShowForm] = useState(false);
+    const [title, setTitle] = useState('');
+    const [description, setDescription] = useState('');
+    const [price, setPrice] = useState('');
+    const [contact, setContact] = useState('');
+    const [imagesBase64, setImagesBase64] = useState<string[]>([]);
+    const [submitting, setSubmitting] = useState(false);
 
     const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://10.0.2.2:5000/api';
 
@@ -55,7 +74,6 @@ export default function TradeScreen() {
             const data = await res.json();
             setListings(data.filter((item: ListingData) => item.status !== 'SOLD'));
         } catch (error) {
-            console.error(error);
         } finally {
             setLoading(false);
         }
@@ -64,6 +82,63 @@ export default function TradeScreen() {
     useEffect(() => {
         fetchListings();
     }, []);
+
+    const handleImageChange = async () => {
+        let result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            allowsEditing: true,
+            aspect: [4, 3],
+            quality: 0.5,
+            base64: true,
+        });
+
+        if (!result.canceled && result.assets[0].base64) {
+            setImagesBase64((prev) => [...prev, `data:image/jpeg;base64,${result.assets[0].base64}`]);
+        }
+    };
+
+    const removeImage = (index: number) => {
+        setImagesBase64((prev) => prev.filter((_, i) => i !== index));
+    };
+
+    const handleAddListing = async () => {
+        if (!title.trim() || !description.trim() || !contact.trim() || !user?.id || imagesBase64.length === 0) {
+            return;
+        }
+
+        setSubmitting(true);
+        try {
+            const res = await fetch(`${API_URL}/listings`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    title: title.trim(),
+                    description: description.trim(),
+                    price: price.trim() ? parseFloat(price) : null,
+                    contact: contact.trim(),
+                    authorId: user.id,
+                    images: imagesBase64,
+                }),
+            });
+
+            if (res.ok) {
+                const newListing = await res.json();
+                setListings([newListing, ...listings]);
+                setShowForm(false);
+                setTitle('');
+                setDescription('');
+                setPrice('');
+                setContact('');
+                setImagesBase64([]);
+            }
+        } catch (error) {
+        } finally {
+            setSubmitting(false);
+        }
+    };
 
     const getPriceString = (priceVal: any) => {
         if (!priceVal || parseFloat(priceVal.toString()) === 0) return 'Darmowe';
@@ -78,16 +153,20 @@ export default function TradeScreen() {
                 <View style={styles.imageWrapper}>
                     <Image source={{ uri: mainImage }} style={styles.cardImage} />
 
-                    <View style={[styles.statusBadge, styles[item.status.toLowerCase()]]}>
+                    <View style={[styles.statusBadge, styles[item.status.toLowerCase() as keyof typeof styles]]}>
                         <View style={[styles.statusDot, item.status === 'AVAILABLE' ? styles.dotAvailable : styles.dotReserved]} />
                         <Text style={styles.statusText}>
                             {item.status === 'AVAILABLE' ? 'Dostępne' : 'Zarezerwowane'}
                         </Text>
                     </View>
 
-                    <View style={styles.priceTagContainer}>
-                        <View style={styles.priceTagButton}>
-                            <Text style={styles.priceTagText}>{getPriceString(item.price)}</Text>
+                    <View style={styles.priceContainer}>
+                        <View style={styles.priceShadowWrapper}>
+                            <LinearGradient colors={[COLORS.white, COLORS.gray]} style={styles.priceBorderGradient}>
+                                <LinearGradient colors={[COLORS.gray, COLORS.white]} style={styles.priceInnerGradient}>
+                                    <Text style={styles.priceText}>{getPriceString(item.price)}</Text>
+                                </LinearGradient>
+                            </LinearGradient>
                         </View>
                     </View>
                 </View>
@@ -101,32 +180,73 @@ export default function TradeScreen() {
         );
     };
 
+    if (loading) {
+        return (
+            <View style={sharedStyles.centerContainer}>
+                <ActivityIndicator size="large" color={COLORS.green} />
+            </View>
+        );
+    }
+
     return (
         <View style={sharedStyles.screenContainer}>
-            {loading ? (
-                <View style={sharedStyles.centerContainer}>
-                    <ActivityIndicator size="large" color={COLORS.primary || '#3498DB'} />
-                </View>
-            ) : (
-                <FlatList
-                    data={listings}
-                    keyExtractor={(item) => item.id.toString()}
-                    renderItem={renderListingCard}
-                    contentContainerStyle={sharedStyles.listContent}
-                    ListHeaderComponent={
+            <FlatList
+                data={listings}
+                keyExtractor={(item) => item.id.toString()}
+                renderItem={renderListingCard}
+                contentContainerStyle={sharedStyles.listContent}
+                ListHeaderComponent={
+                    <View>
                         <ScreenHeader
                             title="Giełda sąsiedzka"
                             subtitle="Przeglądaj oferty zamieszczone przez mieszkańców"
                         />
-                    }
+
+                        {showForm && (
+                            <View style={styles.newPostForm}>
+                                <InputField placeholder="Tytuł ogłoszenia" icon="letters" value={title} onChange={setTitle} />
+                                <InputField placeholder="Cena (PLN)" icon="price" value={price} onChange={setPrice} />
+                                <InputField placeholder="Kontakt" icon="contact" value={contact} onChange={setContact} />
+                                <TextArea placeholder="Opis ogłoszenia..." value={description} onChange={setDescription} />
+
+                                <TouchableOpacity style={styles.imageUploadBtn} onPress={handleImageChange}>
+                                    <IconComponent size={24} color={COLORS.darkGray} strokeWidth={2} />
+                                    <Text style={styles.imageUploadText}>Dodaj zdjęcie</Text>
+                                </TouchableOpacity>
+
+                                {imagesBase64.length > 0 && (
+                                    <View style={styles.imagePreviewList}>
+                                        {imagesBase64.map((src, idx) => (
+                                            <View key={idx} style={styles.imagePreviewItem}>
+                                                <Image source={{ uri: src }} style={styles.previewImg} />
+                                                <TouchableOpacity onPress={() => removeImage(idx)} style={styles.removeBtn}>
+                                                    <Ionicons name="close-circle" size={22} color={COLORS.green} />
+                                                </TouchableOpacity>
+                                            </View>
+                                        ))}
+                                    </View>
+                                )}
+
+                                <Button text={submitting ? "..." : "Opublikuj"} variant="primary" onClick={handleAddListing} />
+                            </View>
+                        )}
+                    </View>
+                }
+            />
+
+            <View style={styles.fabContainer}>
+                <ActionButton
+                    icon={showForm ? "close" : "add"}
+                    variant={showForm ? "danger" : "primary"}
+                    onClick={() => setShowForm(!showForm)}
                 />
-            )}
+            </View>
 
             {selectedListing && (
                 <Modal visible={true} animationType="slide" onRequestClose={() => setSelectedListing(null)}>
                     <View style={sharedStyles.modalContainer}>
                         <TouchableOpacity style={sharedStyles.backButton} onPress={() => setSelectedListing(null)}>
-                            <Ionicons name="chevron-back" size={28} color="#000000" />
+                            <Ionicons name="chevron-back" size={28} color={COLORS.black} />
                         </TouchableOpacity>
 
                         <ScrollView contentContainerStyle={styles.modalScroll} bounces={false}>
@@ -144,7 +264,7 @@ export default function TradeScreen() {
                                     </View>
                                     <View style={sharedStyles.gridBox}>
                                         <Text style={sharedStyles.gridBoxLabel}>KONTAKT</Text>
-                                        <Text style={[sharedStyles.gridBoxValue, styles.contactValue]} numberOfLines={2}>
+                                        <Text style={sharedStyles.gridBoxValue} numberOfLines={2}>
                                             {selectedListing.contact}
                                         </Text>
                                     </View>
@@ -152,7 +272,7 @@ export default function TradeScreen() {
 
                                 <View style={sharedStyles.section}>
                                     <Text style={sharedStyles.sectionHeader}>OPIS</Text>
-                                    <Text style={sharedStyles.descriptionBox}>{selectedListing.description}</Text>
+                                    <Text style={styles.descriptionBox}>{selectedListing.description}</Text>
                                 </View>
 
                                 <View style={sharedStyles.section}>
@@ -168,11 +288,7 @@ export default function TradeScreen() {
                                     <Text style={sharedStyles.sectionHeader}>GALERIA</Text>
                                     <View style={styles.galleryGrid}>
                                         {selectedListing.images && selectedListing.images.map((img, index) => (
-                                            <TouchableOpacity
-                                                key={index}
-                                                style={styles.galleryItem}
-                                                onPress={() => setZoomedImage(img.url)}
-                                            >
+                                            <TouchableOpacity key={index} style={styles.galleryItem} onPress={() => setZoomedImage(img.url)}>
                                                 <Image source={{ uri: img.url }} style={styles.galleryImage} />
                                             </TouchableOpacity>
                                         ))}
@@ -196,6 +312,62 @@ export default function TradeScreen() {
 }
 
 const styles = StyleSheet.create({
+    fabContainer: {
+        position: 'absolute',
+        bottom: 25,
+        right: 25,
+        zIndex: 1000,
+    },
+    newPostForm: {
+        backgroundColor: COLORS.white,
+        borderRadius: 32,
+        padding: 20,
+        borderWidth: 2,
+        borderColor: COLORS.gray,
+        marginBottom: 24,
+        gap: 12,
+    },
+    imageUploadBtn: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 16,
+        borderRadius: 12,
+        borderWidth: 3,
+        borderColor: COLORS.gray,
+        borderStyle: 'dashed',
+        gap: 8,
+        marginTop: 4,
+    },
+    imageUploadText: {
+        color: COLORS.darkGray,
+        fontSize: 16,
+    },
+    imagePreviewList: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: 10,
+        marginTop: 8,
+    },
+    imagePreviewItem: {
+        width: 70,
+        height: 70,
+        borderRadius: 12,
+        position: 'relative',
+    },
+    previewImg: {
+        width: '100%',
+        height: '100%',
+        borderRadius: 12,
+        resizeMode: 'cover',
+    },
+    removeBtn: {
+        position: 'absolute',
+        top: -6,
+        right: -6,
+        backgroundColor: COLORS.white,
+        borderRadius: 11,
+    },
     imageWrapper: {
         width: '100%',
         height: 180,
@@ -209,19 +381,16 @@ const styles = StyleSheet.create({
     statusBadge: {
         position: 'absolute',
         top: 15,
-        left: 0,
+        left: 15,
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#FFFFFF',
+        backgroundColor: COLORS.white,
         paddingVertical: 6,
         paddingHorizontal: 12,
-        borderTopRightRadius: 18,
-        borderBottomRightRadius: 18,
-        borderWidth: 1,
-        borderColor: '#ECF0F1',
+        borderRadius: 14,
     },
     available: {
-        borderColor: '#2ECC71',
+        borderColor: COLORS.green,
     },
     reserved: {
         borderColor: '#F1C40F',
@@ -232,35 +401,52 @@ const styles = StyleSheet.create({
         borderRadius: 4,
     },
     dotAvailable: {
-        backgroundColor: '#2ECC71',
+        backgroundColor: COLORS.green,
     },
     dotReserved: {
         backgroundColor: '#F1C40F',
     },
     statusText: {
         fontSize: 13,
-        fontWeight: '700',
-        color: '#000000',
+        fontFamily: FONTS.heading,
+        color: COLORS.black,
         marginLeft: 6,
+        marginBottom: 5,
     },
-    priceTagContainer: {
+    priceContainer: {
         position: 'absolute',
         bottom: -15,
         right: 20,
+        backgroundColor: COLORS.gray,
+        padding: 3,
+        borderRadius: 14,
     },
-    priceTagButton: {
-        backgroundColor: '#FFFFFF',
-        borderWidth: 2,
-        borderColor: '#ECF0F1',
-        borderRadius: 10,
-        paddingVertical: 6,
+    priceShadowWrapper: {
+        borderRadius: 11,
+        elevation: 6,
+        shadowColor: COLORS.black,
+        shadowOffset: { width: 0, height: 3 },
+        shadowOpacity: 0.1,
+        shadowRadius: 5,
+    },
+    priceBorderGradient: {
+        padding: 2,
+        borderRadius: 11,
+    },
+    priceInnerGradient: {
+        paddingVertical: 8,
         paddingHorizontal: 12,
-        elevation: 3,
+        borderRadius: 9,
+        justifyContent: 'center',
+        alignItems: 'center',
+        minWidth: 70,
     },
-    priceTagText: {
-        fontSize: 14,
-        fontWeight: '700',
-        color: '#000000',
+    priceText: {
+        fontFamily: FONTS.heading,
+        fontSize: 16,
+        color: COLORS.black,
+        textAlign: 'center',
+        marginBottom: 5,
     },
     cardBody: {
         padding: 25,
@@ -269,12 +455,13 @@ const styles = StyleSheet.create({
     title: {
         fontSize: 20,
         fontFamily: FONTS.heading,
-        color: '#000000',
+        color: COLORS.black,
         marginBottom: 5,
     },
     authorName: {
         fontSize: 15,
-        color: '#7F8C8D',
+        fontFamily: FONTS.regular,
+        color: COLORS.darkGray,
     },
     modalScroll: {
         flexGrow: 1,
@@ -287,9 +474,19 @@ const styles = StyleSheet.create({
         gap: 15,
         marginBottom: 30,
     },
+    headingFont: {
+        fontFamily: FONTS.heading,
+    },
     contactValue: {
         fontSize: 14,
+        fontFamily: FONTS.regular,
         textAlign: 'center',
+    },
+    descriptionBox: {
+        fontFamily: FONTS.regular,
+        backgroundColor: COLORS.white,
+        padding: 12,
+        borderRadius: 12,
     },
     galleryGrid: {
         flexDirection: 'row',
@@ -302,7 +499,7 @@ const styles = StyleSheet.create({
         borderRadius: 12,
         overflow: 'hidden',
         borderWidth: 1,
-        borderColor: '#ECF0F1',
+        borderColor: COLORS.gray,
     },
     galleryImage: {
         width: '100%',
